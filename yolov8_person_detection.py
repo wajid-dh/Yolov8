@@ -5,16 +5,17 @@ import numpy as np
 from ultralytics import YOLO
 
 # Load YOLOv8 model
-model = YOLO('yolov8n.pt')  # model size nano
+# model size nano
+model = YOLO('yolov8n.pt')  
 
 # Random color without shades of red
-def get_random_color():
+def random_color():
     while True:
         color = [random.randint(0, 255) for _ in range(3)]
         if color[0] < 100 or (color[1] > 100 and color[2] > 100): 
             return tuple(color)
 
-# Initialize webcam
+#  webcam
 cap = cv2.VideoCapture(0)
 
 # Initialize variables for bounding boxes, colors, and tracking
@@ -41,7 +42,7 @@ def click_event(event, x, y, flags, param):
         for i, (x1, y1, x2, y2) in enumerate(boxes):
             if x1 <= x <= x2 and y1 <= y <= y2:
                 if selected_box_id is not None:
-                    colors[boxes[selected_box_id]] = get_random_color()
+                    colors[boxes[selected_box_id]] = random_color()
                 selected_box_id = i
                 colors[boxes[selected_box_id]] = (0, 0, 255)
                 start_time = time.time()
@@ -59,13 +60,14 @@ while True:
     new_boxes = []
     for result in results:
         for bbox, class_id in zip(result.boxes.xyxy.tolist(), result.boxes.cls.tolist()):
-            if int(class_id) == 0:  # Class ID = 0 is for person in COCO dataset
+            # Class ID = 0 is for person in COCO dataset
+            if int(class_id) == 0:  
                 x1, y1, x2, y2 = map(int, bbox[:4])
                 new_boxes.append((x1, y1, x2, y2))
                 if (x1, y1, x2, y2) not in colors:
-                    colors[(x1, y1, x2, y2)] = get_random_color()
+                    colors[(x1, y1, x2, y2)] = random_color()
 
-    # Match the selected box with new detection
+    # Matching the selected box with new detection
     if selected_box_id is not None:
         min_distance = float('inf')
         closest_box = None
@@ -92,7 +94,7 @@ while True:
         if selected_box_id == i:
             cv2.putText(frame, f'Time: {int(time.time() - start_time)}s', (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-    # Display the frame
+    # frame display
     cv2.imshow('YOLOv8 Object Detection', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
